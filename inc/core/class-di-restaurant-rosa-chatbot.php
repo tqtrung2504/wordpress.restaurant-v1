@@ -66,17 +66,122 @@ class Di_Restaurant_Rosa_Chatbot {
 	/**
 	 * Get API key.
 	 *
+	 * Priority: wp-config constant → database → environment → local key file.
+	 *
 	 * @return string
 	 */
 	public static function get_api_key() {
-		$key = get_option( self::OPTION_API_KEY, '' );
-
-		if ( ! empty( $key ) ) {
-			return $key;
+		if ( defined( 'DI_RESTAURANT_GEMINI_API_KEY' ) && DI_RESTAURANT_GEMINI_API_KEY ) {
+			return trim( (string) DI_RESTAURANT_GEMINI_API_KEY );
 		}
 
+		$key = get_option( self::OPTION_API_KEY, '' );
+		if ( ! empty( $key ) ) {
+			return trim( (string) $key );
+		}
+
+		$env_key = self::get_env_api_key();
+		if ( $env_key ) {
+			return $env_key;
+		}
+
+		return self::read_api_key_file();
+	}
+
+	/**
+	 * Read Gemini API key from environment variables.
+	 *
+	 * @return string
+	 */
+	private static function get_env_api_key() {
+		foreach ( array( 'DI_RESTAURANT_GEMINI_API_KEY', 'GEMINI_API_KEY' ) as $name ) {
+			$value = getenv( $name );
+			if ( is_string( $value ) && '' !== trim( $value ) ) {
+				return trim( $value );
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Read Gemini API key from a local file (portable across machines).
+	 *
+	 * @return string
+	 */
+	private static function read_api_key_file() {
+		foreach ( self::get_api_key_file_paths() as $path ) {
+			$key = self::parse_api_key_file( $path );
+			if ( $key ) {
+				return $key;
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Describe where the active API key comes from (for admin UI).
+	 *
+	 * @return string
+	 */
+	public static function get_api_key_source() {
 		if ( defined( 'DI_RESTAURANT_GEMINI_API_KEY' ) && DI_RESTAURANT_GEMINI_API_KEY ) {
-			return DI_RESTAURANT_GEMINI_API_KEY;
+			return 'wp-config.php';
+		}
+
+		if ( ! empty( get_option( self::OPTION_API_KEY, '' ) ) ) {
+			return 'database';
+		}
+
+		if ( self::get_env_api_key() ) {
+			return 'environment';
+		}
+
+		foreach ( self::get_api_key_file_paths() as $path ) {
+			if ( self::parse_api_key_file( $path ) ) {
+				return $path;
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Candidate local key file paths.
+	 *
+	 * @return array
+	 */
+	private static function get_api_key_file_paths() {
+		return array(
+			get_template_directory() . '/inc/local/gemini-api.key',
+			WP_CONTENT_DIR . '/gemini-api.key',
+		);
+	}
+
+	/**
+	 * Parse the first valid API key line from a file.
+	 *
+	 * @param string $path File path.
+	 * @return string
+	 */
+	private static function parse_api_key_file( $path ) {
+		if ( ! is_readable( $path ) ) {
+			return '';
+		}
+
+		$contents = file_get_contents( $path );
+		if ( ! is_string( $contents ) ) {
+			return '';
+		}
+
+		foreach ( preg_split( '/\R/', $contents ) as $line ) {
+			$line = trim( $line );
+			if ( '' === $line || '#' === $line[0] ) {
+				continue;
+			}
+
+			return $line;
 		}
 
 		return '';
@@ -162,6 +267,17 @@ class Di_Restaurant_Rosa_Chatbot {
 			<p>Cấu hình chatbot tư vấn món ăn cho <strong>Hanoi Home Taste</strong>. Lấy API key tại
 				<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.
 			</p>
+			<?php if ( self::is_active() ) : ?>
+				<div class="notice notice-success inline">
+					<p>Chatbot đang hoạt động. Nguồn API key: <code><?php echo esc_html( self::get_api_key_source() ); ?></code></p>
+				</div>
+			<?php else : ?>
+				<div class="notice notice-warning inline">
+					<p>Chưa có API key. Nhập bên dưới, hoặc tạo file
+						<code>wp-content/themes/di-restaurant/inc/local/gemini-api.key</code>
+						(chỉ 1 dòng chứa key) để dùng trên mọi máy mà không cần nhập lại trong database.</p>
+				</div>
+			<?php endif; ?>
 			<form method="post" action="options.php">
 				<?php settings_fields( 'di_restaurant_chatbot' ); ?>
 				<table class="form-table" role="presentation">
@@ -178,7 +294,11 @@ class Di_Restaurant_Rosa_Chatbot {
 						<th scope="row"><label for="di_restaurant_gemini_api_key">Gemini API Key</label></th>
 						<td>
 							<input type="password" class="regular-text" id="di_restaurant_gemini_api_key" name="<?php echo esc_attr( self::OPTION_API_KEY ); ?>" value="<?php echo esc_attr( get_option( self::OPTION_API_KEY, '' ) ); ?>" autocomplete="off">
-							<p class="description">Hoặc định nghĩa hằng số <code>DI_RESTAURANT_GEMINI_API_KEY</code> trong <code>wp-config.php</code>.</p>
+							<p class="description">Có thể cấu hình theo thứ tự ưu tiên:
+								<code>DI_RESTAURANT_GEMINI_API_KEY</code> trong <code>wp-config.php</code>,
+								lưu tại đây (database),
+								biến môi trường <code>GEMINI_API_KEY</code>,
+								hoặc file <code>inc/local/gemini-api.key</code> / <code>wp-content/gemini-api.key</code>.</p>
 						</td>
 					</tr>
 					<tr>
