@@ -348,12 +348,11 @@ class Di_Restaurant_Rosa {
 
 		$theme_mods = array(
 			'rosa_hero_subtitle'         => 'Chào mừng',
-			'rosa_hero_title'            => 'Nhà Hàng Sen Vàng',
+			'rosa_hero_title'            => di_restaurant_rosa_get_brand_name(),
 			'rosa_hero_image'            => $img_base . 'hero.jpg',
 			'rosa_story_subtitle'        => 'Khám phá',
 			'rosa_story_title'           => 'Câu chuyện',
-			'rosa_story_description'     => 'Nhà Hàng Sen Vàng ra đời từ tình yêu ẩm thực Việt. Chúng tôi tôn vinh hương vị truyền thống, nguyên liệu tươi sạch và không gian ấm cúng như ở nhà.',
-			'rosa_story_button'          => 'Về chúng tôi',
+			'rosa_story_description'     => di_restaurant_rosa_get_story_text(),
 			'rosa_menu_subtitle'         => 'Khám phá',
 			'rosa_menu_title'            => 'Thực đơn',
 			'rosa_menu_description'      => 'Phở, cơm tấm, bún chả, gỏi cuốn và nhiều món Việt được chế biến mỗi ngày từ nguyên liệu tươi.',
@@ -374,8 +373,8 @@ class Di_Restaurant_Rosa {
 			set_theme_mod( $key, $value );
 		}
 
-		update_option( 'blogname', 'Nhà Hàng Sen Vàng' );
-		update_option( 'blogdescription', 'Ẩm thực Việt đích thực' );
+		update_option( 'blogname', di_restaurant_rosa_get_brand_name() );
+		update_option( 'blogdescription', 'Hương vị Hà Nội tại nhà' );
 		update_option( 'WPLANG', 'vi' );
 	}
 
@@ -385,13 +384,14 @@ class Di_Restaurant_Rosa {
 	public function import_demo_content() {
 		$this->apply_vietnamese_locale();
 
-		update_option( 'blogname', 'Nhà Hàng Sen Vàng' );
-		update_option( 'blogdescription', 'Ẩm thực Việt đích thực' );
+		update_option( 'blogname', di_restaurant_rosa_get_brand_name() );
+		update_option( 'blogdescription', 'Hương vị Hà Nội tại nhà' );
 
 		$pages = array(
 			'our-story'    => array(
 				'title'   => 'Câu chuyện',
-				'content' => 'Nhà Hàng Sen Vàng ra đời từ tình yêu ẩm thực Việt. Chúng tôi tôn vinh hương vị truyền thống, nguyên liệu tươi sạch và không gian ấm cúng như ở nhà.',
+				'content' => 'Tại Hanoi Home Taste, chúng tôi tin rằng mỗi món ăn đều mang trong mình một câu chuyện riêng. Đó có thể là hương vị quen thuộc của những bữa cơm gia đình, là ký ức về những con phố cổ nhộn nhịp hay là nét thanh lịch đặc trưng của người Hà Nội.
+Chúng tôi luôn ưu tiên sử dụng những nguyên liệu tươi ngon và giữ gìn cách chế biến truyền thống để mỗi món ăn vẫn giữ được hương vị nguyên bản vốn có. Bởi chúng tôi hiểu rằng giá trị của ẩm thực không chỉ nằm ở sự ngon miệng mà còn ở cảm xúc mà nó mang lại.',
 			),
 			'menu'         => array(
 				'title'   => 'Thực đơn',
@@ -403,11 +403,11 @@ class Di_Restaurant_Rosa {
 			),
 			'contact'      => array(
 				'title'   => 'Liên hệ',
-				'content' => 'Liên hệ đội ngũ Nhà Hàng Sen Vàng để đặt bàn, tổ chức sự kiện hoặc các thắc mắc khác.',
+				'content' => 'Liên hệ đội ngũ Hanoi Home Taste để đặt bàn, tổ chức sự kiện hoặc các thắc mắc khác.',
 			),
 			'feedback'     => array(
 				'title'   => 'Góp ý',
-				'content' => 'Chia sẻ trải nghiệm của bạn tại Nhà Hàng Sen Vàng.',
+				'content' => 'Chia sẻ trải nghiệm của bạn tại Hanoi Home Taste.',
 			),
 		);
 

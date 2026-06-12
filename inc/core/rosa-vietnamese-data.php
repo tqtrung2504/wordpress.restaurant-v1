@@ -10,6 +10,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Restaurant brand name.
+ *
+ * @return string
+ */
+function di_restaurant_rosa_get_brand_name() {
+	return 'Hanoi Home Taste';
+}
+
+/**
+ * Restaurant story text.
+ *
+ * @return string
+ */
+function di_restaurant_rosa_get_story_text() {
+	return 'Tại Hanoi Home Taste, chúng tôi tin rằng mỗi món ăn đều mang trong mình một câu chuyện riêng. Đó có thể là hương vị quen thuộc của những bữa cơm gia đình, là ký ức về những con phố cổ nhộn nhịp hay là nét thanh lịch đặc trưng của người Hà Nội. Chúng tôi luôn ưu tiên sử dụng những nguyên liệu tươi ngon và giữ gìn cách chế biến truyền thống để mỗi món ăn vẫn giữ được hương vị nguyên bản vốn có. Bởi chúng tôi hiểu rằng giá trị của ẩm thực không chỉ nằm ở sự ngon miệng mà còn ở cảm xúc mà nó mang lại.';
+}
+
+/**
  * Get Vietnamese menu sections.
  *
  * @return array
@@ -22,14 +40,14 @@ function di_restaurant_rosa_get_vietnamese_menu() {
 			'title' => 'Khai vị',
 			'items' => array(
 				array(
-					'name'        => 'Gỏi cuốn tôm thịt',
-					'description' => 'Bánh tráng cuốn tôm, thịt luộc, bún, rau thơm, chấm tương đậu.',
-					'price'       => '45000',
+					'name'        => 'Gỏi Cuốn Tôm Thịt',
+					'description' => 'Tôm tươi, thịt luộc, bún và rau thơm cuộn bánh tráng, kèm nước chấm cay chua ngọt.',
+					'price'       => '75000',
 					'image'       => $img . 'goi-cuon.jpg',
 				),
 				array(
-					'name'        => 'Chả giò rế',
-					'description' => 'Chả giò giòn rụm, nhân tôm thịt, ăn kèm rau sống và nước mắm chua ngọt.',
+					'name'        => 'Nộm Bò Khô ',
+					'description' => 'Đu đủ xanh bào sợi, bò khô cay nồng, rau thơm và lạc rang sốt chua ngọt.',
 					'price'       => '55000',
 					'image'       => $img . 'cha-gio.jpg',
 				),
@@ -45,20 +63,20 @@ function di_restaurant_rosa_get_vietnamese_menu() {
 			'title' => 'Món chính',
 			'items' => array(
 				array(
-					'name'        => 'Phở bò tái',
-					'description' => 'Nước dùng ninh xương 12 giờ, bánh phở tươi, thịt bò tái, hành lá, ngò gai.',
+					'name'        => 'Bún Thang',
+					'description' => 'Sự kết hợp tinh tế từ lườn gà xé, giò lụa, trứng tráng thái chỉ và nước dùng gà trong vắt.',
 					'price'       => '75000',
 					'image'       => $img . 'pho-bo.jpg',
 				),
 				array(
-					'name'        => 'Cơm tấm sườn bì chả',
-					'description' => 'Cơm tấm dẻo thơm, sườn nướng, bì, chả trứng, đồ chua, nước mắm.',
+					'name'        => 'Phở Bò Hà Nội',
+					'description' => 'Bánh phở dẻo, thịt bò tươi thái mỏng hòa cùng nước dùng ninh xương bò thanh ngọt.',
 					'price'       => '70000',
 					'image'       => $img . 'com-tam.jpg',
 				),
 				array(
-					'name'        => 'Bún chả Hà Nội',
-					'description' => 'Chả nướng than hoa, bún tươi, rau sống, nước mắm pha chua ngọt.',
+					'name'        => 'Bún Chả Hà Nội',
+					'description' => 'Chả viên và chả miếng nướng than hoa xém cạnh, ngập trong nước mắm đu đủ chua ngọt.',
 					'price'       => '68000',
 					'image'       => $img . 'bun-cha.jpg',
 				),
@@ -68,14 +86,14 @@ function di_restaurant_rosa_get_vietnamese_menu() {
 			'title' => 'Tráng miệng',
 			'items' => array(
 				array(
-					'name'        => 'Chè ba màu',
-					'description' => 'Đậu xanh, đậu đỏ, thạch dừa, nước cốt dừa, đá viên.',
+					'name'        => 'Chè Khúc Bạch',
+					'description' => 'Khúc bạch sữa béo ngậy, hạnh nhân nướng thơm bùi kèm quả vải và trân châu trắng.',
 					'price'       => '30000',
 					'image'       => $img . 'che-ba-mau.jpg',
 				),
 				array(
-					'name'        => 'Bánh flan',
-					'description' => 'Bánh flan mềm mịn, caramel thơm, phục vụ lạnh.',
+					'name'        => 'Kem Tràng Tiền',
+					'description' => 'Kem cây hoặc kem viên truyền thống với các hương vị đặc trưng: cốm, dừa, sữa dừa.',
 					'price'       => '28000',
 					'image'       => $img . 'banh-flan.jpg',
 				),
@@ -85,9 +103,9 @@ function di_restaurant_rosa_get_vietnamese_menu() {
 			'title' => 'Đồ uống',
 			'items' => array(
 				array(
-					'name'        => 'Trà đá',
-					'description' => 'Trà xanh pha đậm, phục vụ đá lạnh.',
-					'price'       => '10000',
+					'name'        => 'Trà Chanh',
+					'description' => 'Trà xanh mộc thanh mát hòa quyện chanh tươi, mật ong tự nhiên và đá lạnh',
+					'price'       => '25000',
 					'image'       => $img . 'tra-da.jpg',
 				),
 				array(
@@ -97,9 +115,9 @@ function di_restaurant_rosa_get_vietnamese_menu() {
 					'image'       => $img . 'ca-phe-sua.jpg',
 				),
 				array(
-					'name'        => 'Nước mía',
-					'description' => 'Nước mía ép tươi, thêm chanh tươi.',
-					'price'       => '25000',
+					'name'        => 'Trà đá',
+					'description' => 'Giá bình dân, trà xanh mộc thanh mát hòa với đá lạnh',
+					'price'       => '10000',
 					'image'       => $img . 'nuoc-mia.jpg',
 				),
 			),
@@ -118,55 +136,65 @@ function di_restaurant_rosa_format_vnd( $amount ) {
 }
 
 /**
- * Get WooCommerce Vietnamese products.
+ * Build menu text for AI chatbot system prompt.
+ *
+ * @return string
+ */
+function di_restaurant_rosa_get_menu_prompt_context() {
+	$sections = di_restaurant_rosa_get_vietnamese_menu();
+	$lines    = array( 'THỰC ĐƠN ' . strtoupper( di_restaurant_rosa_get_brand_name() ) . ':' );
+
+	foreach ( $sections as $section ) {
+		$lines[] = "\n## {$section['title']}";
+		foreach ( $section['items'] as $item ) {
+			$price   = di_restaurant_rosa_format_vnd( $item['price'] );
+			$lines[] = "- {$item['name']} ({$price}): {$item['description']}";
+		}
+	}
+
+	$lines[] = "\nGiờ mở cửa: 10:00 - 22:00 hàng ngày.";
+	$lines[] = 'Địa chỉ: 123 Đường Ẩm Thực, Quận 1, TP. Hồ Chí Minh.';
+	$lines[] = 'Điện thoại: 0901 234 567.';
+	$lines[] = 'Đặt bàn tại: ' . home_url( '/reservations/' );
+
+	return implode( "\n", $lines );
+}
+
+/**
+ * Get WooCommerce Vietnamese products (synced from menu data).
  *
  * @return array
  */
 function di_restaurant_rosa_get_vietnamese_products() {
-	$img = get_template_directory_uri() . '/assets/images/rosa/menu/';
-
-	return array(
-		array(
-			'name'  => 'Phở bò tái',
-			'slug'  => 'pho-bo-tai',
-			'price' => '75000',
-			'image' => $img . 'pho-bo.jpg',
-			'desc'  => 'Nước dùng ninh xương 12 giờ, bánh phở tươi, thịt bò tái.',
-		),
-		array(
-			'name'  => 'Cơm tấm sườn bì chả',
-			'slug'  => 'com-tam-suon-bi-cha',
-			'price' => '70000',
-			'image' => $img . 'com-tam.jpg',
-			'desc'  => 'Cơm tấm dẻo thơm, sườn nướng, bì, chả trứng.',
-		),
-		array(
-			'name'  => 'Bún chả Hà Nội',
-			'slug'  => 'bun-cha-ha-noi',
-			'price' => '68000',
-			'image' => $img . 'bun-cha.jpg',
-			'desc'  => 'Chả nướng than hoa, bún tươi, rau sống.',
-		),
-		array(
-			'name'  => 'Gỏi cuốn tôm thịt',
-			'slug'  => 'goi-cuon-tom-thit',
-			'price' => '45000',
-			'image' => $img . 'goi-cuon.jpg',
-			'desc'  => 'Bánh tráng cuốn tôm, thịt, rau thơm.',
-		),
-		array(
-			'name'  => 'Cà phê sữa đá',
-			'slug'  => 'ca-phe-sua-da',
-			'price' => '35000',
-			'image' => $img . 'ca-phe-sua.jpg',
-			'desc'  => 'Cà phê phin truyền thống, sữa đặc.',
-		),
-		array(
-			'name'  => 'Chè ba màu',
-			'slug'  => 'che-ba-mau',
-			'price' => '30000',
-			'image' => $img . 'che-ba-mau.jpg',
-			'desc'  => 'Đậu xanh, đậu đỏ, thạch dừa, nước cốt dừa.',
-		),
+	$slug_map = array(
+		'Gỏi Cuốn Tôm Thịt' => 'goi-cuon-tom-thit',
+		'Nộm Bò Khô'        => 'nom-bo-kho',
+		'Gỏi đu đủ khô bò'  => 'goi-du-du-kho-bo',
+		'Bún Thang'         => 'bun-thang',
+		'Phở Bò Hà Nội'     => 'pho-bo-ha-noi',
+		'Bún Chả Hà Nội'    => 'bun-cha-ha-noi',
+		'Chè Khúc Bạch'     => 'che-khuc-bach',
+		'Kem Tràng Tiền'    => 'kem-trang-tien',
+		'Trà Chanh'         => 'tra-chanh',
+		'Cà phê sữa đá'     => 'ca-phe-sua-da',
+		'Trà đá'            => 'tra-da',
 	);
+
+	$products = array();
+
+	foreach ( di_restaurant_rosa_get_vietnamese_menu() as $section ) {
+		foreach ( $section['items'] as $item ) {
+			$slug = isset( $slug_map[ $item['name'] ] ) ? $slug_map[ $item['name'] ] : sanitize_title( $item['name'] );
+
+			$products[] = array(
+				'name'  => $item['name'],
+				'slug'  => $slug,
+				'price' => $item['price'],
+				'image' => $item['image'],
+				'desc'  => $item['description'],
+			);
+		}
+	}
+
+	return $products;
 }

@@ -38,7 +38,10 @@ class Di_Restaurant_Rosa_Features {
 	 */
 	public function __construct() {
 		add_action( 'wp', array( $this, 'track_visitor' ) );
+		add_action( 'wp', array( $this, 'customize_woocommerce_for_rosa' ) );
+		add_action( 'init', array( $this, 'ensure_classic_cart_page' ), 20 );
 		add_filter( 'woocommerce_enqueue_styles', array( $this, 'disable_default_woo_styles' ) );
+		add_filter( 'render_block', array( $this, 'filter_woocommerce_blocks' ), 10, 2 );
 	}
 
 	/**
@@ -51,6 +54,71 @@ class Di_Restaurant_Rosa_Features {
 			return array();
 		}
 		return $enqueue_styles;
+	}
+
+	/**
+	 * Rosa shop: no product links. Rosa cart: no proceed-to-checkout button.
+	 */
+	public function customize_woocommerce_for_rosa() {
+		if ( ! class_exists( 'WooCommerce' ) || ! Di_Restaurant_Rosa::is_rosa_page() ) {
+			return;
+		}
+
+		if ( is_shop() || is_product_category() || is_product_tag() ) {
+			remove_action( 'woocommerce_before_shop_loop_item', 'woocommerce_template_loop_product_link_open', 10 );
+			remove_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_product_link_close', 5 );
+		}
+
+		if ( is_cart() ) {
+			remove_action( 'woocommerce_proceed_to_checkout', 'woocommerce_button_proceed_to_checkout', 20 );
+		}
+	}
+
+	/**
+	 * Use classic cart shortcode so Rosa cart layout/CSS applies.
+	 */
+	public function ensure_classic_cart_page() {
+		if ( get_option( 'rosa_cart_classic_shortcode' ) || ! class_exists( 'WooCommerce' ) ) {
+			return;
+		}
+
+		$cart_page_id = wc_get_page_id( 'cart' );
+		if ( $cart_page_id <= 0 ) {
+			return;
+		}
+
+		$page = get_post( $cart_page_id );
+		if ( ! $page || false !== strpos( $page->post_content, '[woocommerce_cart]' ) ) {
+			update_option( 'rosa_cart_classic_shortcode', '1', false );
+			return;
+		}
+
+		wp_update_post(
+			array(
+				'ID'           => $cart_page_id,
+				'post_content' => '[woocommerce_cart]',
+			)
+		);
+		update_option( 'rosa_cart_classic_shortcode', '1', false );
+	}
+
+	/**
+	 * Hide block-based checkout button on Rosa cart (fallback).
+	 *
+	 * @param string $block_content Block HTML.
+	 * @param array  $block         Block data.
+	 * @return string
+	 */
+	public function filter_woocommerce_blocks( $block_content, $block ) {
+		if ( empty( $block['blockName'] ) || ! Di_Restaurant_Rosa::is_rosa_page() || ! is_cart() ) {
+			return $block_content;
+		}
+
+		if ( 'woocommerce/proceed-to-checkout' === $block['blockName'] ) {
+			return '';
+		}
+
+		return $block_content;
 	}
 
 	/**
@@ -125,6 +193,29 @@ class Di_Restaurant_Rosa_Features {
 		update_option( 'woocommerce_price_decimal_sep', ',' );
 		update_option( 'woocommerce_price_num_decimals', '0' );
 		update_option( 'woocommerce_enable_guest_checkout', 'yes' );
+		update_option( 'woocommerce_coming_soon', 'no' );
+		update_option( 'woocommerce_store_pages_only', 'no' );
+
+		$shop_page_id = wc_get_page_id( 'shop' );
+		if ( $shop_page_id > 0 ) {
+			wp_update_post(
+				array(
+					'ID'         => $shop_page_id,
+					'post_title' => 'Cửa hàng',
+				)
+			);
+		}
+
+		$cart_page_id = wc_get_page_id( 'cart' );
+		if ( $cart_page_id > 0 ) {
+			wp_update_post(
+				array(
+					'ID'           => $cart_page_id,
+					'post_title'   => 'Giỏ hàng',
+					'post_content' => '[woocommerce_cart]',
+				)
+			);
+		}
 	}
 
 	/**
@@ -192,10 +283,17 @@ class Di_Restaurant_Rosa_Features {
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 		}
 
+		$old_thumb = get_post_thumbnail_id( $product_id );
+		if ( $old_thumb ) {
+			wp_delete_attachment( $old_thumb, true );
+		}
+
 		$local_path = str_replace( get_template_directory_uri(), get_template_directory(), $image_url );
 
 		if ( file_exists( $local_path ) ) {
-			$upload = wp_upload_bits( basename( $local_path ), null, file_get_contents( $local_path ) );
+			$upload_dir = wp_upload_dir();
+			$filename   = wp_unique_filename( $upload_dir['path'], basename( $local_path ) );
+			$upload     = wp_upload_bits( $filename, null, file_get_contents( $local_path ) );
 		} else {
 			$attachment_id = media_sideload_image( $image_url, $product_id, $title, 'id' );
 			if ( ! is_wp_error( $attachment_id ) ) {

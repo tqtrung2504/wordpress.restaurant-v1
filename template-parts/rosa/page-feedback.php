@@ -20,7 +20,7 @@ $hero_img = get_theme_mod( 'rosa_story_image', $img_base . 'story.jpg' );
 		<span class="rosa-section__divider" aria-hidden="true">&#10043;</span>
 		<h1 class="rosa-page-hero__title">Góp ý</h1>
 		<p class="rosa-page-hero__lead">
-			Chia sẻ trải nghiệm tại Nhà Hàng Sen Vàng. Ý kiến của bạn giúp chúng tôi phục vụ tốt hơn.
+			Chia sẻ trải nghiệm tại Hanoi Home Taste. Ý kiến của bạn giúp chúng tôi phục vụ tốt hơn.
 		</p>
 	</div>
 </section>

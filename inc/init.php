@@ -38,6 +38,9 @@ require_once get_template_directory() . '/inc/core/class-di-restaurant-rosa-feat
 // Vietnamese content data.
 require_once get_template_directory() . '/inc/core/rosa-vietnamese-data.php';
 
+// Rosa AI chatbot (Gemini).
+require_once get_template_directory() . '/inc/core/class-di-restaurant-rosa-chatbot.php';
+
 // Add class TGM_Plugin_Activation.
 require_once get_template_directory() . '/inc/tgm/class-tgm-plugin-activation.php';
 

@@ -20,7 +20,7 @@ $hero_img = get_theme_mod( 'rosa_delight_image', $img_base . 'delight.jpg' );
 		<span class="rosa-section__divider" aria-hidden="true">&#10043;</span>
 		<h1 class="rosa-page-hero__title">Đặt bàn</h1>
 		<p class="rosa-page-hero__lead">
-			Đặt bàn trước để có trải nghiệm ẩm thực Việt trọn vẹn tại Nhà Hàng Sen Vàng.
+			Đặt bàn trước để có trải nghiệm ẩm thực Hà Nội trọn vẹn tại Hanoi Home Taste.
 		</p>
 	</div>
 </section>
