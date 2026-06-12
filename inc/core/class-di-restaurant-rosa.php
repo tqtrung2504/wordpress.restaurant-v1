@@ -498,27 +498,43 @@ Chúng tôi luôn ưu tiên sử dụng những nguyên liệu tươi ngon và g
 
 		$this->clear_menu_items( $menu_id );
 
-		$shop_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
+		$shop_page_id = function_exists( 'wc_get_page_id' ) ? wc_get_page_id( 'shop' ) : 0;
+		$front_page   = (int) get_option( 'page_on_front' );
 
 		$items = array(
-			array( 'title' => 'Trang chủ', 'url' => home_url( '/' ) ),
-			array( 'title' => 'Thực đơn', 'url' => ! empty( $page_ids['menu'] ) ? get_permalink( $page_ids['menu'] ) : home_url( '/menu/' ) ),
-			array( 'title' => 'Cửa hàng', 'url' => $shop_url ),
-			array( 'title' => 'Đặt bàn', 'url' => ! empty( $page_ids['reservations'] ) ? get_permalink( $page_ids['reservations'] ) : home_url( '/reservations/' ) ),
-			array( 'title' => 'Góp ý', 'url' => ! empty( $page_ids['feedback'] ) ? get_permalink( $page_ids['feedback'] ) : home_url( '/feedback/' ) ),
-			array( 'title' => 'Liên hệ', 'url' => ! empty( $page_ids['contact'] ) ? get_permalink( $page_ids['contact'] ) : home_url( '/contact/' ) ),
+			array( 'title' => 'Trang chủ', 'page_id' => $front_page ),
+			array( 'title' => 'Thực đơn', 'page_id' => ! empty( $page_ids['menu'] ) ? (int) $page_ids['menu'] : 0 ),
+			array( 'title' => 'Cửa hàng', 'page_id' => $shop_page_id > 0 ? (int) $shop_page_id : 0 ),
+			array( 'title' => 'Đặt bàn', 'page_id' => ! empty( $page_ids['reservations'] ) ? (int) $page_ids['reservations'] : 0 ),
+			array( 'title' => 'Góp ý', 'page_id' => ! empty( $page_ids['feedback'] ) ? (int) $page_ids['feedback'] : 0 ),
+			array( 'title' => 'Liên hệ', 'page_id' => ! empty( $page_ids['contact'] ) ? (int) $page_ids['contact'] : 0 ),
 		);
 
 		foreach ( $items as $item ) {
-			wp_update_nav_menu_item(
-				$menu_id,
-				0,
-				array(
-					'menu-item-title'  => $item['title'],
-					'menu-item-url'    => $item['url'],
-					'menu-item-status' => 'publish',
-				)
+			$menu_args = array(
+				'menu-item-title'  => $item['title'],
+				'menu-item-status' => 'publish',
 			);
+
+			if ( ! empty( $item['page_id'] ) ) {
+				$menu_args['menu-item-object-id'] = $item['page_id'];
+				$menu_args['menu-item-object']    = 'page';
+				$menu_args['menu-item-type']      = 'post_type';
+			} else {
+				$fallbacks = array(
+					'Trang chủ'  => home_url( '/' ),
+					'Thực đơn'   => home_url( '/menu/' ),
+					'Cửa hàng'   => home_url( '/shop/' ),
+					'Đặt bàn'    => home_url( '/reservations/' ),
+					'Góp ý'      => home_url( '/feedback/' ),
+					'Liên hệ'    => home_url( '/contact/' ),
+				);
+
+				$menu_args['menu-item-url']  = $fallbacks[ $item['title'] ] ?? home_url( '/' );
+				$menu_args['menu-item-type'] = 'custom';
+			}
+
+			wp_update_nav_menu_item( $menu_id, 0, $menu_args );
 		}
 
 		$locations            = get_theme_mod( 'nav_menu_locations', array() );

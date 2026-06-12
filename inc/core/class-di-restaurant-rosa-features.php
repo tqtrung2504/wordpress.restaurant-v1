@@ -37,9 +37,16 @@ class Di_Restaurant_Rosa_Features {
 	 * Constructor.
 	 */
 	public function __construct() {
+		add_filter( 'option_home', array( $this, 'filter_local_url' ) );
+		add_filter( 'option_siteurl', array( $this, 'filter_local_url' ) );
+		add_filter( 'wp_nav_menu_objects', array( $this, 'fix_menu_local_urls' ), 10, 2 );
+		add_filter( 'woocommerce_add_to_cart_redirect', '__return_false' );
+
+		add_action( 'init', array( $this, 'maybe_flush_local_rewrite_rules' ), 99 );
 		add_action( 'wp', array( $this, 'track_visitor' ) );
 		add_action( 'wp', array( $this, 'customize_woocommerce_for_rosa' ) );
 		add_action( 'init', array( $this, 'ensure_classic_cart_page' ), 20 );
+		add_action( 'init', array( $this, 'ensure_ajax_add_to_cart' ), 20 );
 		add_filter( 'woocommerce_enqueue_styles', array( $this, 'disable_default_woo_styles' ) );
 		add_filter( 'render_block', array( $this, 'filter_woocommerce_blocks' ), 10, 2 );
 	}
@@ -54,6 +61,173 @@ class Di_Restaurant_Rosa_Features {
 			return array();
 		}
 		return $enqueue_styles;
+	}
+
+	/**
+	 * Whether the current request is on a local dev host.
+	 *
+	 * @return bool
+	 */
+	private function is_local_request() {
+		if ( empty( $_SERVER['HTTP_HOST'] ) ) {
+			return false;
+		}
+
+		$host = strtolower( preg_replace( '/:\d+$/', '', sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) ) );
+
+		return in_array( $host, array( 'localhost', '127.0.0.1', '::1' ), true );
+	}
+
+	/**
+	 * Detect the WordPress root URL from the current request (portable local dev).
+	 *
+	 * @return string|null
+	 */
+	private function detect_local_site_url() {
+		if ( empty( $_SERVER['HTTP_HOST'] ) ) {
+			return null;
+		}
+
+		$https  = ( ! empty( $_SERVER['HTTPS'] ) && 'off' !== strtolower( wp_unslash( $_SERVER['HTTPS'] ) ) )
+			|| ( isset( $_SERVER['SERVER_PORT'] ) && 443 === (int) $_SERVER['SERVER_PORT'] );
+		$scheme = $https ? 'https' : 'http';
+		$host   = sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) );
+
+		$doc_root = ! empty( $_SERVER['DOCUMENT_ROOT'] ) ? wp_normalize_path( realpath( $_SERVER['DOCUMENT_ROOT'] ) ) : '';
+		$abspath  = wp_normalize_path( ABSPATH );
+
+		if ( $doc_root && $abspath && 0 === strpos( $abspath, $doc_root ) ) {
+			$relative = substr( $abspath, strlen( $doc_root ) );
+			$relative = '/' . trim( $relative, '/' );
+			if ( '/' === $relative ) {
+				$relative = '';
+			}
+
+			return $scheme . '://' . $host . $relative;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Use the current host/path on localhost instead of a hardcoded Windows URL.
+	 *
+	 * @param string $url Stored site URL.
+	 * @return string
+	 */
+	public function filter_local_url( $url ) {
+		if ( defined( 'WP_HOME' ) || defined( 'WP_SITEURL' ) || ! $this->is_local_request() ) {
+			return $url;
+		}
+
+		$detected = $this->detect_local_site_url();
+		if ( ! $detected ) {
+			return $url;
+		}
+
+		$stored_parts   = wp_parse_url( $url );
+		$detected_parts = wp_parse_url( $detected );
+		$build_origin   = static function ( $parts ) {
+			$origin = ( $parts['scheme'] ?? 'http' ) . '://' . ( $parts['host'] ?? '' );
+			if ( ! empty( $parts['port'] ) ) {
+				$origin .= ':' . $parts['port'];
+			}
+			return $origin;
+		};
+
+		$stored_origin   = $build_origin( $stored_parts );
+		$detected_origin = $build_origin( $detected_parts );
+		$stored_path     = rtrim( (string) ( $stored_parts['path'] ?? '' ), '/' );
+		$detected_path   = rtrim( (string) ( $detected_parts['path'] ?? '' ), '/' );
+
+		if ( $stored_origin === $detected_origin && $stored_path === $detected_path ) {
+			return $url;
+		}
+
+		return $detected;
+	}
+
+	/**
+	 * Rewrite hardcoded localhost menu links for the current machine.
+	 *
+	 * @param array    $items Menu items.
+	 * @param stdClass $args  Menu args.
+	 * @return array
+	 */
+	public function fix_menu_local_urls( $items, $args ) {
+		if ( defined( 'WP_HOME' ) || ! $this->is_local_request() || empty( $items ) ) {
+			return $items;
+		}
+
+		$detected = $this->detect_local_site_url();
+		if ( ! $detected ) {
+			return $items;
+		}
+
+		foreach ( $items as $item ) {
+			if ( empty( $item->url ) ) {
+				continue;
+			}
+
+			$parts = wp_parse_url( $item->url );
+			$host  = strtolower( $parts['host'] ?? '' );
+
+			if ( ! in_array( $host, array( 'localhost', '127.0.0.1', '::1' ), true ) ) {
+				continue;
+			}
+
+			$path     = $parts['path'] ?? '';
+			$query    = ! empty( $parts['query'] ) ? '?' . $parts['query'] : '';
+			$fragment = ! empty( $parts['fragment'] ) ? '#' . $parts['fragment'] : '';
+
+			$item->url = rtrim( $detected, '/' ) . $path . $query . $fragment;
+		}
+
+		return $items;
+	}
+
+	/**
+	 * Regenerate .htaccess when the install path changes (e.g. Windows to Mac).
+	 */
+	public function maybe_flush_local_rewrite_rules() {
+		if ( defined( 'WP_HOME' ) || ! $this->is_local_request() ) {
+			return;
+		}
+
+		$detected = $this->detect_local_site_url();
+		if ( ! $detected ) {
+			return;
+		}
+
+		$path          = wp_parse_url( $detected, PHP_URL_PATH );
+		$path          = rtrim( (string) $path, '/' );
+		$expected_base = $path ? $path . '/' : '/';
+		$stored_base   = get_option( 'rosa_local_rewrite_base' );
+
+		if ( $stored_base === $expected_base ) {
+			return;
+		}
+
+		$htaccess = ABSPATH . '.htaccess';
+		$needs_flush = ! is_readable( $htaccess );
+
+		if ( ! $needs_flush ) {
+			$content = file_get_contents( $htaccess );
+			if ( is_string( $content ) && preg_match( '/RewriteBase\s+(\S+)/', $content, $matches ) ) {
+				$normalize = static function ( $base ) {
+					$base = '/' . trim( (string) $base, '/' );
+					return ( '/' === $base ) ? '/' : $base . '/';
+				};
+
+				$needs_flush = $normalize( $matches[1] ) !== $normalize( $expected_base );
+			}
+		}
+
+		if ( $needs_flush ) {
+			flush_rewrite_rules( true );
+		}
+
+		update_option( 'rosa_local_rewrite_base', $expected_base, false );
 	}
 
 	/**
@@ -72,6 +246,17 @@ class Di_Restaurant_Rosa_Features {
 		if ( is_cart() ) {
 			remove_action( 'woocommerce_proceed_to_checkout', 'woocommerce_button_proceed_to_checkout', 20 );
 		}
+	}
+
+	/**
+	 * Keep add-to-cart on the shop page (no redirect to a broken URL).
+	 */
+	public function ensure_ajax_add_to_cart() {
+		if ( ! class_exists( 'WooCommerce' ) || 'yes' === get_option( 'woocommerce_enable_ajax_add_to_cart' ) ) {
+			return;
+		}
+
+		update_option( 'woocommerce_enable_ajax_add_to_cart', 'yes' );
 	}
 
 	/**
@@ -193,6 +378,7 @@ class Di_Restaurant_Rosa_Features {
 		update_option( 'woocommerce_price_decimal_sep', ',' );
 		update_option( 'woocommerce_price_num_decimals', '0' );
 		update_option( 'woocommerce_enable_guest_checkout', 'yes' );
+		update_option( 'woocommerce_enable_ajax_add_to_cart', 'yes' );
 		update_option( 'woocommerce_coming_soon', 'no' );
 		update_option( 'woocommerce_store_pages_only', 'no' );
 
@@ -216,6 +402,9 @@ class Di_Restaurant_Rosa_Features {
 				)
 			);
 		}
+
+		delete_option( 'rosa_local_rewrite_base' );
+		flush_rewrite_rules( true );
 	}
 
 	/**

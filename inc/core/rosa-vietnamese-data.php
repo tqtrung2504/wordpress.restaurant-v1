@@ -51,17 +51,17 @@ function di_restaurant_rosa_get_vietnamese_menu() {
 					'price'       => '55000',
 					'image'       => $img . 'cha-gio.jpg',
 				),
-				array(
-					'name'        => 'Gỏi đu đủ khô bò',
-					'description' => 'Đu đủ xanh, khô bò, đậu phộng rang, rau thơm, sốt mắm ruốc.',
-					'price'       => '65000',
-					'image'       => $img . 'goi-du-du.jpg',
-				),
 			),
 		),
 		array(
 			'title' => 'Món chính',
 			'items' => array(
+				array(
+					'name'        => 'Bún đậu mắm tôm',
+					'description' => 'Đu đủ xanh, khô bò, đậu phộng rang, rau thơm, sốt mắm ruốc.',
+					'price'       => '65000',
+					'image'       => $img . 'goi-du-du.jpg',
+				),
 				array(
 					'name'        => 'Bún Thang',
 					'description' => 'Sự kết hợp tinh tế từ lườn gà xé, giò lụa, trứng tráng thái chỉ và nước dùng gà trong vắt.',
